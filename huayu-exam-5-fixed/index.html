@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>華語文教學擬真模擬考｜第五回</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f4f6fb;color:#182033}.loading{max-width:760px;margin:70px auto;padding:32px;background:#fff;border:1px solid #dce3ef;border-radius:18px;box-shadow:0 14px 40px rgba(31,48,85,.1)}h1{margin:0 0 12px;font-size:28px}p{line-height:1.7;color:#667085}.error{color:#b42318;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main class="loading" id="status"><h1>第五回擬真模擬考</h1><p>正在載入可作答版本……</p></main>
+<script>
+(async()=>{
+  try{
+    const source='https://raw.githubusercontent.com/rolance110/AI_with_Image_Process/main/huayu-exam-5/index.html';
+    const response=await fetch(source,{cache:'no-store'});
+    if(!response.ok) throw new Error('無法讀取考卷資料：HTTP '+response.status);
+    const loader=await response.text();
+    const match=loader.match(/atob\("([A-Za-z0-9+/=]+)"\)/);
+    if(!match) throw new Error('找不到考卷資料。');
+
+    const binary=atob(match[1]);
+    const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+    if(typeof DecompressionStream==='undefined') throw new Error('目前瀏覽器不支援解壓縮，請使用最新版 Chrome 或 Edge。');
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    let exam=await new Response(stream).text();
+
+    const repairQuestion=(startText)=>{
+      const marker='"question":"'+startText;
+      const start=exam.indexOf(marker);
+      if(start<0) return;
+      const contentStart=start+marker.length;
+      const end=exam.indexOf('","rubric"',contentStart);
+      if(end<0) return;
+      const repaired=exam.slice(contentStart,end).replace(/\r?\n/g,'\\n');
+      exam=exam.slice(0,contentStart)+repaired+exam.slice(end);
+    };
+
+    repairQuestion('請閱讀下列課堂對話，回答三個問題：');
+    repairQuestion('請以中級華語學習者為對象，設計副詞「才」與「就」的教學。答案須包含：');
+
+    document.open();
+    document.write(exam);
+    document.close();
+  }catch(error){
+    document.getElementById('status').innerHTML='<h1>載入失敗</h1><p class="error">'+String(error.message||error)+'</p><p>請重新整理頁面，或改用 Chrome／Edge 開啟。</p>';
+  }
+})();
+</script>
+</body>
+</html>
